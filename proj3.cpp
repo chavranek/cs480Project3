@@ -27,6 +27,8 @@ struct Node
   int parent;
   int depth;
   int hvalue;
+  //int gvalue;
+  //int fvalue;
   
   Node()
   {
@@ -166,6 +168,8 @@ void Astar(vector<int> Permutation, int size)
 {
   vector<Node> Pointers;
   priority_queue<Node> Queue;
+	// priority_queue<Node, vector<Node>, greater<fvalue> > Queue
+                            
     
     Node initial;
     initial.parent = -1;
