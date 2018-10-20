@@ -10,6 +10,8 @@ Project: Project 3 (A* with permutation)
 #include <queue>
 #include <time.h>
 #include <iomanip>
+#include <stdlib.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -27,8 +29,8 @@ struct Node
   int parent;
   int depth;
   int hvalue;
-  //int gvalue;
-  //int fvalue;
+  int gvalue;
+  int fvalue;
   
   Node()
   {
@@ -36,36 +38,42 @@ struct Node
     parent = -1;
     int depth = 0;
     hvalue = 0;
-  }
-  friend bool operator < (Node const& node1, Node const& node2)
-  {
-    return (node1.hvalue < node2.hvalue);
+    gvalue = 0;
+    fvalue = 0;
   }
 
-     
+};
+
+struct myComparator
+{
+  int operator() (const Node& n1, const Node& n2)
+  {
+      return n1.fvalue > n2.fvalue;
+  }
+  
 };
 
 
 void printOutput (vector<Node> Pointers, int index);
 
 
-
 int gethValue(vector<int> succ)
 {
   int hValue = 0;
   int breakPoints = 0;
-  for (int i = 0; i < succ.size(); i++)
+  for (int i = 0; i < succ.size() - 1; i++)
     {
-      if (succ[i] != succ[i]+1 && succ[i] != succ[i]-1)
-	{
-	  breakPoints++;
-	}
+      if (succ[i + 1] != succ[i] + 1 && succ[i + 1] != succ[i] - 1)
+	    {
+	        breakPoints++;
+	    }
     }
-  hValue = .5 * breakPoints;
+  hValue = breakPoints / 2;
+  return hValue;
 }
 
 
-void successors(vector<Node>&Pointers, priority_queue<Node>&Queue, vector<int>permutation, int parent, int size)
+void successors(vector<Node>&Pointers, priority_queue<Node, vector<Node>, myComparator>&Queue, vector<int>permutation, int parent, int size)
 {
   
   for(int i = 2; i <= size; i++)
@@ -76,16 +84,17 @@ void successors(vector<Node>&Pointers, priority_queue<Node>&Queue, vector<int>pe
           vector<int> succ;
 	  succ = permutation;
 	  int hValue = gethValue(succ);
-          reverse(succ.begin()+j, succ.begin()+j+i);
+      reverse(succ.begin()+j, succ.begin()+j+i);
 	  cycle = Pointers[parent].Perm;
 	  if (!equal(succ.begin(), succ.end(), cycle.begin()))
 	    {
 	      Node childNode;
 	      childNode.hvalue = hValue;
+	      childNode.gvalue = Pointers[parent].gvalue + 1;
+	      childNode.fvalue = childNode.hvalue + childNode.gvalue;
 	      childNode.Perm = succ;
 	      childNode.parent = parent;
 	      Pointers.push_back(childNode);
-
 	      childNode.parent = Pointers.size() - 1;
 	      Queue.push(childNode);
 	      AstarVisited++;
@@ -166,16 +175,13 @@ vector<int> getInput()
 
 void Astar(vector<int> Permutation, int size)
 {
-  vector<Node> Pointers;
-  priority_queue<Node> Queue;
-	// priority_queue<Node, vector<Node>, greater<fvalue> > Queue
-                            
+    vector<Node> Pointers;
+    priority_queue<Node, vector<Node>, myComparator > Queue;
     
     Node initial;
     initial.parent = -1;
     for (int i = 0; i < size; i++)
         initial.Perm.push_back(Permutation[i]);
-        
     Pointers.push_back(initial);
     initial.parent = Pointers.size()-1;
     Queue.push(initial);
@@ -185,10 +191,10 @@ void Astar(vector<int> Permutation, int size)
     while(!Queue.empty())
     {
         Node currentNode = Queue.top();
-	Queue.pop();
+	    Queue.pop();
         if (checkGoal(currentNode.Perm, size))
         {
-	  cout << "Answer for A*:" << endl;
+	        cout << "Answer for A*:" << endl;
             printOutput(Pointers, currentNode.parent);
             return;
         }
@@ -239,3 +245,10 @@ void printOutput(vector<Node> Pointers, int index)
 	cout << endl;
       }
 }
+
+
+
+
+
+
+
